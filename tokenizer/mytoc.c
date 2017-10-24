@@ -3,105 +3,111 @@
 #include<unistd.h>
 #include "mytoc.h"
 
+void printList(char**list){
+  int i;
+  int j;
+  for(i = 0; list[i] != 0; i++){
+    for(j = 0; list[i][j] != 0; j++){
+      printf("%c", list[i][j]);
+    }
+    printf("\n");
+  }
+}
+
 //function that is used to tell me how many words are in a string while using the delimiter
 int numberOfWords(char *str, char delim){
   int numOfWords = 0;
-  int count = 0;
-  char *p;
-  for(p = str; *p; ++p){
-    if(*p != '\0'){
-      // printf("%c%", *p);
+  int word = 0;
+  int space = 0;
+  int i;
+  for(i = 0; str[i] != 0; i++){
+    //check for word
+    if(str[i] != delim){
+      //printf("there is a word\n");
+      word = 1;
     }
-    if(*p == delim){
-      if(count != 0){
+    //check for space
+    if(str[i] == delim){
+      space = 1;
+      //check if there was a word before the delim
+      if(word == 1){
 	numOfWords++;
-	count = 0;
+	word = 0;
       }
     }
-    else
-      count++;
+    //check if the string ends with a word
+    if(str[i+1] == 0){
+      if(word == 1)
+	numOfWords++;
+    }
   }
-  if(count != 0)
-    numOfWords++;
   return numOfWords;
 }
 
 //tells me the number of characters in a string
 int numberOfChar(char *word){
-  char *p;
+  int p;
   int count = 0;
-  for(p = word; *p; ++p)
+  for(p = 0; word[p] != 0; p++)
     count++;
   return count;
 }
 
 //given a strin and a delimiter, it returns an array of strings with the appropriate memory allocated
 char ** mytoc(char *str, char delim){
-  
-  int count = 0;
-  //used to get the appropriate size for listOfWords
-  int numOfWords = numberOfWords(str, delim);
-  //temp pointer that is used to go through the given string
-  char *p;
   char **listOfWords;
-  int wordCounter = 0;
-  //used as a key to keep track of where in the string we currently are when parsing the string
-  int totalCount = 0;
-
-  //allocating memory for listOfWords
-  listOfWords = (char**) malloc(sizeof(char*) * numOfWords);
-
-  //gets the length of the string
-  int len = numberOfChar(str);
-  printf("words: ");
-  printf("%d\n", numOfWords);
-  p = str;
-
-  //used to make sure that a space isn't part of a word
-  int charCounter = 0;
-  
-  for(int x = 0; x <= len; x++){
-
-    //makes sure that a space isn't considered a word
-    if(p[totalCount] == delim && charCounter == 0)
-      count = 0;
+  int words = numberOfWords(str, delim);
+  listOfWords = (char**)calloc(words,sizeof(char*));
+  int i;
+  int word = 0;
+  int space = 0;
+  int count = 0;
+  int letters = 0;
+  char* wordToAdd[1000];
+  for(int i = 0; str[i] != 0; i++){
     
-    //adds a word to the list of words
-    if(p[totalCount] == delim && count != 0){
-      listOfWords[wordCounter] = (char*) malloc(sizeof(char)*count+1);
-      for(int i = 0; i < count; i++){
-	listOfWords[wordCounter][i] = p[totalCount - charCounter];
-	charCounter--;
-      }
-      totalCount++;
-      wordCounter++;
-      count = 0;
-      charCounter = 0;
-   }
-    //if it is at the end of the string and there is a word that hasn't been added
-    else if(x == len && count != 0){
-      listOfWords[wordCounter] = (char*) malloc(sizeof(char)*count+1);
-      for(int i = 0; i < count; i++){
-	listOfWords[wordCounter][i] = p[totalCount - charCounter];
-	charCounter--;
-      }
-      
-      totalCount++;
-      wordCounter++;
-      count = 0;
-      charCounter = 0;
-    }
-    //if it hasn't hit a delimiter
-    else if(p[totalCount] != delim){
-      totalCount++;
-      count++;
-      charCounter++;
-    }
-    else{
-      totalCount++;
-      count++;
+    //check for word
+    if(str[i] != delim){
+      word = 1;
+      wordToAdd[letters] = str[i];
+      letters++;
       
     }
+    //check for space
+    if(str[i] == delim){
+      space = 1;
+      //check if there was a word before the delim
+      if(word == 1){
+	listOfWords[count] = (char *)malloc(letters);
+	int j;
+	for(j = 0; wordToAdd[j] != 0; j++){
+	  listOfWords[count][j] = wordToAdd[j];
+	}
+	listOfWords[count][letters] = 0;
+	word = 0;
+	count++;
+	letters = 0;
+	wordToAdd[0] = 0;
+      }else{
+	letters = 0;
+      }
+    }
+    //check if the string ends with a word
+    if(str[i+1] == 0){
+      if(word == 1){
+	listOfWords[count] = (char *)malloc(letters);
+	int j;
+	for(j = 0; wordToAdd[j] != 0; j++){
+	  listOfWords[count][j] = wordToAdd[j];
+	}
+	listOfWords[count][letters] = 0;
+	listOfWords[count+1] = 0;
+      }
+      else{
+	listOfWords[count] = 0;
+      }
+    }
+    
   }
   return listOfWords;
 }  
